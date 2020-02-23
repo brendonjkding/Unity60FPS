@@ -1,0 +1,9 @@
+Package: com.brend0n.fgotw60fps
+Name: fgotw60fps
+Depends: mobilesubstrate
+Version: 0.0.3
+Architecture: iphoneos-arm
+Description: 国服也可用
+Maintainer: Brendon
+Author: Brendon
+Section: Tweaks

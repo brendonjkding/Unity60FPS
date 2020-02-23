@@ -1,0 +1,10 @@
+{
+	Filter = {
+		Bundles = (
+			"com.xiaomeng.fategrandorder",
+			"com.bilibili.fatego",
+			"com.aniplex.fategrandorder",
+			"com.aniplex.fategrandorder.en",
+		);
+	};
+}

@@ -3,7 +3,7 @@ include $(THEOS)/makefiles/common.mk
 ARCHS= arm64 arm64e
 BUNDLE_NAME = fgotw60fpspref
 
-fgotw60fpspref_FILES = BDRootListController.m
+fgotw60fpspref_FILES = FGO60FPSRootListController.m
 fgotw60fpspref_INSTALL_PATH = /Library/PreferenceBundles
 fgotw60fpspref_FRAMEWORKS = UIKit
 fgotw60fpspref_PRIVATE_FRAMEWORKS = Preferences

@@ -1,5 +1,5 @@
 #import <Preferences/PSListController.h>
 #import <Preferences/PSSpecifier.h>
-@interface BDRootListController : PSListController
+@interface FGO60FPSRootListController : PSListController
 
 @end

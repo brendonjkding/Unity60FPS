@@ -1,9 +1,14 @@
 Package: com.brend0n.fgotw60fps
 Name: fgotw60fps
-Depends: mobilesubstrate
-Version: 0.0.3
+Depends: mobilesubstrate,preferenceloader
+Version: 0.0.4
 Architecture: iphoneos-arm
-Description: 国服也可用
-Maintainer: Brendon
-Author: Brendon
+Description: hook法，国服/台服均可用
+ 更新:
+ 0.0.4 修复设置图标bug。修复设置页面与我的其它插件冲突bug
+ 0.0.3 设置中增加开关
+ 0.0.2 理论游戏更新后自动适配
+ 0.0.1 上架
+Maintainer: Brend0n <brendonjkding@126.com>
+Author: Brend0n <brendonjkding@126.com>
 Section: Tweaks

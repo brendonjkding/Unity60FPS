@@ -1,6 +1,6 @@
-#include "BDRootListController.h"
+#include "FGO60FPSRootListController.h"
 
-@implementation BDRootListController
+@implementation FGO60FPSRootListController
 
 - (NSArray *)specifiers {
 	if (!_specifiers) {

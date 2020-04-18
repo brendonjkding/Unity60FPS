@@ -8,6 +8,7 @@ fgotw60fpspref_INSTALL_PATH = /Library/PreferenceBundles
 fgotw60fpspref_FRAMEWORKS = UIKit
 fgotw60fpspref_PRIVATE_FRAMEWORKS = Preferences
 fgotw60fpspref_CFLAGS = -fobjc-arc
+fgotw60fpspref_LIBRARIES = sparkapplist
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 

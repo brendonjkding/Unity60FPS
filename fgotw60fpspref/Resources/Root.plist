@@ -24,6 +24,21 @@
 			<key>PostNotification</key>
 			<string>com.brend0n.fgotw60fpspref/loadPref</string>
 		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>本插件可能适用其它unity游戏，请自行测试</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>选择其它游戏</string>
+			<key>action</key>
+			<string>selectApp</string>
+		</dict>
 	</array>
 	<key>title</key>
 	<string>fgotw60fps</string>

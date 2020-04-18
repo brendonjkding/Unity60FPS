@@ -13,7 +13,7 @@ bool enabled=0;
 
 static void (*orig_setTargetFrameRate)(int fps)=0;
 static void mysetTargetFrameRate(int fps){
-	NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
+	// NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
 	orig_setTargetFrameRate(enabled?60:fps);
 }
 
@@ -139,13 +139,25 @@ bool loadPref(){
 	if(orig_setTargetFrameRate) orig_setTargetFrameRate(fps);
 	return enabled;
 }
+bool check_id(){
+	NSString* bundleIdentifier=[[NSBundle mainBundle] bundleIdentifier];
+	NSArray *ids=@[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"];
+	if([ids containsObject:bundleIdentifier])return true;
+	
+	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.brend0n.fgotw60fpspref.plist"];
+	NSArray *apps=prefs?prefs[@"apps"]:nil;
+	if(!apps) return false;
+	if([apps containsObject:bundleIdentifier]) return true;
+	
+	return false;
+}
 
 
 %ctor {
 	loadPref();
 	aslr=_dyld_get_image_vmaddr_slide(0);
 	NSLog(@"ASLR=0x%lx",aslr);
-	hook_setTargetFrameRate();
+	if(check_id())	hook_setTargetFrameRate();
 	int token = 0;
 	notify_register_dispatch("com.brend0n.fgotw60fpspref/loadPref", &token, dispatch_get_main_queue(), ^(int token) {
 		loadPref();

@@ -27,4 +27,9 @@
         CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), notificationName, NULL, NULL, YES);
     }
 }
+- (void)selectApp{
+    SparkAppListTableViewController* s = [[SparkAppListTableViewController alloc] initWithIdentifier:@"com.brend0n.fgotw60fpspref" andKey:@"apps"];
+    [self.navigationController pushViewController:s animated:YES];
+    self.navigationItem.hidesBackButton = FALSE;
+}
 @end

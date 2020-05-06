@@ -6,7 +6,7 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = fgotw60fps
 
 fgotw60fps_FILES = Tweak.x readmem/readmem.m
-fgotw60fps_CFLAGS = -fno-objc-arc
+fgotw60fps_CFLAGS = -fobjc-arc -Wno-unused-function
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 SUBPROJECTS += fgotw60fpspref

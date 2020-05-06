@@ -5,16 +5,23 @@
 #import "readmem/readmem.h"
 
 long aslr;
-long ad_str;
+long ad_fps;
 uint64_t main_address;
 long main_size;
-int fps=60;
 bool enabled=0;
 
-static void (*orig_setTargetFrameRate)(int fps)=0;
-static void mysetTargetFrameRate(int fps){
+static long (*orig_setTargetFrameRate)(int fps)=0;
+static long mysetTargetFrameRate(int fps){
 	// NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
-	orig_setTargetFrameRate(enabled?60:fps);
+	long ret=orig_setTargetFrameRate(enabled?60:fps);
+	return ret;
+}
+static long (*orig_callback)(int fps)=0;
+static long mycallback(int fps){
+	// NSLog(@"orig_callback called");
+	if(enabled) *(int*)ad_fps=60;
+	long ret=orig_callback(enabled?60:fps);
+	return ret;
 }
 
 
@@ -53,7 +60,6 @@ static inline uint64_t get_b_address(uint32_t ins,long pc){
 	if((ins>>25)&0b1) imm26|=0xfc000000;
 	else imm26&=~0xfc000000;
 	imm26<<=2;
-
 	return pc+(int64_t)imm26;
 }
 static inline uint64_t get_add_value(uint32_t ins){
@@ -72,6 +78,9 @@ static inline uint64_t get_add_value(uint32_t ins){
     }
     return imm12;
 }
+static inline uint64_t get_str_imm12(uint32_t ins){
+	return 4*((ins&0x3ffc00)>>10);
+}
 //end----------
 
 long find_ad(long ad_ref){
@@ -89,7 +98,7 @@ long find_ad(long ad_ref){
 
 	return ad_final;
 }
-long search_targetins(){
+long search_targetins(long ad_str){
 	for(long ad=main_address;ad<main_address+main_size;ad++){
 		int32_t ins=*(int32_t*)ad;
 		int32_t ins2=*(int32_t*)(ad+4);
@@ -108,41 +117,58 @@ long search_targetstr(){
 	return false;
 }
 
+void hook_callback(long ad_t){
+	ad_fps=get_adrp_address(*(uint32_t*)ad_t,ad_t)+get_str_imm12(*(uint32_t*)(ad_t+0x4));
+	NSLog(@"ad_fps: 0x%lx",ad_fps-aslr);
 
+	long ad_callback=get_b_address(*(uint32_t*)(ad_t+0x8),ad_t+0x8);
+	NSLog(@"ad_callback: 0x%lx",ad_callback-aslr);
+
+	NSLog(@"hook callback start");
+	MSHookFunction((void *)ad_callback, (void *)mycallback, (void **)&orig_callback);
+	NSLog(@"hook callback success");
+}
 
 void hook_setTargetFrameRate(){
 	find_main_binary(mach_task_self(),&main_address);
 	main_size=get_image_size(main_address,mach_task_self());
 	NSLog(@"[*] main: 0x%llx size: %ldMB",main_address-aslr,main_size/1024/1024);
 
-    ad_str=search_targetstr();
+    long ad_str=search_targetstr();
     NSLog(@"ad_str:0x%lx",ad_str-aslr);
 
-    long ad_ref=search_targetins();
+    long ad_ref=search_targetins(ad_str);
     long ad_t=find_ad(ad_ref);
-
+    if(is_adrp(*(uint32_t*)ad_t)){
+		hook_callback(ad_t);
+		return;
+	}
 	
-	NSLog(@"hook start");
+	NSLog(@"hook setTargetFrameRate start");
 	MSHookFunction((void *)ad_t, (void *)mysetTargetFrameRate, (void **)&orig_setTargetFrameRate);
 	NSLog(@"hook setTargetFrameRate success");
 
 	return;
 }
 
-bool loadPref(){
+void loadPref(){
 	NSLog(@"loadPref..........");
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.brend0n.fgotw60fpspref.plist"];
 	if(!prefs) enabled=1;
 	else enabled=[prefs[@"enabled"] boolValue]==YES?1:0;
 	int fps=enabled?60:30;
-	NSLog(@"now fps: %d",fps);
+	// NSLog(@"now fps: %d",fps);
 	if(orig_setTargetFrameRate) orig_setTargetFrameRate(fps);
-	return enabled;
+	if(orig_callback) {
+		if(enabled) *(int*)ad_fps=60;
+		orig_callback(fps);
+		
+	}
 }
-bool check_id(){
+bool is_enabled_app(){
 	NSString* bundleIdentifier=[[NSBundle mainBundle] bundleIdentifier];
-	NSArray *ids=@[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"];
-	if([ids containsObject:bundleIdentifier])return true;
+	NSArray *fgo_ids=@[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"];
+	if([fgo_ids containsObject:bundleIdentifier])return true;
 	
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.brend0n.fgotw60fpspref.plist"];
 	NSArray *apps=prefs?prefs[@"apps"]:nil;
@@ -154,10 +180,11 @@ bool check_id(){
 
 
 %ctor {
+	if(!is_enabled_app()) return;
 	loadPref();
 	aslr=_dyld_get_image_vmaddr_slide(0);
 	NSLog(@"ASLR=0x%lx",aslr);
-	if(check_id())	hook_setTargetFrameRate();
+	hook_setTargetFrameRate();
 	int token = 0;
 	notify_register_dispatch("com.brend0n.fgotw60fpspref/loadPref", &token, dispatch_get_main_queue(), ^(int token) {
 		loadPref();

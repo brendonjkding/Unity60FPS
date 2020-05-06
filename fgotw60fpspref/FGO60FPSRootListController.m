@@ -5,6 +5,31 @@
 - (NSArray *)specifiers {
 	if (!_specifiers) {
 		_specifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
+
+        //thanks to https://github.com/julioverne/GoodWiFi
+        PSSpecifier* spec;
+        spec = [PSSpecifier preferenceSpecifierNamed:@"作者"
+                                              target:self
+                                              set:Nil
+                                              get:Nil
+                                              detail:Nil
+                                              cell:PSGroupCell
+                                              edit:Nil];
+        [spec setProperty:@"作者" forKey:@"label"];
+        [_specifiers addObject:spec];
+        
+        spec = [PSSpecifier preferenceSpecifierNamed:@"关注我"
+                                              target:self
+                                                 set:NULL
+                                                 get:NULL
+                                              detail:Nil
+                                                cell:PSLinkCell
+                                                edit:Nil];
+        spec->action = @selector(open_bilibili);
+        [spec setProperty:@YES forKey:@"hasIcon"];
+        [spec setProperty:[UIImage imageNamed:@"bilibili" inBundle:[NSBundle bundleForClass:[self class]] compatibleWithTraitCollection:nil] forKey:@"iconImage"];
+        [_specifiers addObject:spec];
+
 	}
 
 	return _specifiers;
@@ -31,5 +56,13 @@
     SparkAppListTableViewController* s = [[SparkAppListTableViewController alloc] initWithIdentifier:@"com.brend0n.fgotw60fpspref" andKey:@"apps"];
     [self.navigationController pushViewController:s animated:YES];
     self.navigationItem.hidesBackButton = FALSE;
+}
+- (void)open_bilibili{
+    UIApplication *app = [UIApplication sharedApplication];
+    if ([app canOpenURL:[NSURL URLWithString:@"bilibili://space/22182611"]]) {
+        [app openURL:[NSURL URLWithString:@"bilibili://space/22182611"]];
+    } else {
+        [app openURL:[NSURL URLWithString:@"https://space.bilibili.com/22182611"]];
+    }
 }
 @end

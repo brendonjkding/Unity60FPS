@@ -1,5 +1,4 @@
 TARGET = iphone:clang:11.2:9.0
-INSTALL_TARGET_PROCESSES = fatego
 ARCHS=arm64 arm64e
 include $(THEOS)/makefiles/common.mk
 

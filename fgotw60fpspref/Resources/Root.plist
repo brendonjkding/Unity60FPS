@@ -9,6 +9,8 @@
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>开关</string>
+			<key>footerText</key>
+			<string>注：iOS上最终帧数受屏幕强制垂直同步影响</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -23,6 +25,22 @@
 			<string>开关</string>
 			<key>PostNotification</key>
 			<string>com.brend0n.fgotw60fpspref/loadPref</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>default</key>
+			<string>60</string>
+			<key>defaults</key>
+			<string>com.brend0n.fgotw60fpspref</string>
+			<key>key</key>
+			<string>customFps</string>
+			<key>isNumeric</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.brend0n.fgotw60fpspref/loadPref</string>
+			<key>label</key>
+			<string>自定义帧数</string>
 		</dict>
 
 		<dict>

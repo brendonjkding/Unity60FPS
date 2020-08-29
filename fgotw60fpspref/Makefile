@@ -1,14 +1,18 @@
 # TARGET = iphone:clang:11.2:9.0
 include $(THEOS)/makefiles/common.mk
-ARCHS= arm64 arm64e
+ifeq ($(debug),0)
+	ARCHS= arm64 arm64e
+else
+	ARCHS= arm64 
+endif
 BUNDLE_NAME = fgotw60fpspref
 
-fgotw60fpspref_FILES = FGO60FPSRootListController.m
+fgotw60fpspref_FILES = $(wildcard *.m) 
 fgotw60fpspref_INSTALL_PATH = /Library/PreferenceBundles
 fgotw60fpspref_FRAMEWORKS = UIKit
 fgotw60fpspref_PRIVATE_FRAMEWORKS = Preferences
 fgotw60fpspref_CFLAGS = -fobjc-arc
-fgotw60fpspref_LIBRARIES = sparkapplist
+fgotw60fpspref_LIBRARIES = applist
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 

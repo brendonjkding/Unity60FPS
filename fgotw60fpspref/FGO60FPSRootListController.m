@@ -1,14 +1,15 @@
 #include "FGO60FPSRootListController.h"
-
+#import "BDAppListController.h"
+#import "BDInfoListController.h"
 @implementation FGO60FPSRootListController
 
 - (NSArray *)specifiers {
 	if (!_specifiers) {
 		_specifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
 
-        //thanks to https://github.com/julioverne/GoodWiFi
         PSSpecifier* spec;
-        spec = [PSSpecifier preferenceSpecifierNamed:@"作者"
+        
+        spec = [PSSpecifier preferenceSpecifierNamed:@"关于作者"
                                               target:self
                                               set:Nil
                                               get:Nil
@@ -17,29 +18,14 @@
                                               edit:Nil];
         [spec setProperty:@"作者" forKey:@"label"];
         [_specifiers addObject:spec];
-        
-        spec = [PSSpecifier preferenceSpecifierNamed:@"Github"
+        spec = [PSSpecifier preferenceSpecifierNamed:@"关于作者"
                                               target:self
                                                  set:NULL
                                                  get:NULL
                                               detail:Nil
                                                 cell:PSLinkCell
                                                 edit:Nil];
-        spec->action = @selector(open_github);
-        [spec setProperty:@YES forKey:@"hasIcon"];
-        [spec setProperty:[UIImage imageNamed:@"github" inBundle:[NSBundle bundleForClass:[self class]] compatibleWithTraitCollection:nil] forKey:@"iconImage"];
-        [_specifiers addObject:spec];
-
-        spec = [PSSpecifier preferenceSpecifierNamed:@"关注我"
-                                              target:self
-                                                 set:NULL
-                                                 get:NULL
-                                              detail:Nil
-                                                cell:PSLinkCell
-                                                edit:Nil];
-        spec->action = @selector(open_bilibili);
-        [spec setProperty:@YES forKey:@"hasIcon"];
-        [spec setProperty:[UIImage imageNamed:@"bilibili" inBundle:[NSBundle bundleForClass:[self class]] compatibleWithTraitCollection:nil] forKey:@"iconImage"];
+        spec->action = @selector(showInfo);
         [_specifiers addObject:spec];
 
 	}
@@ -64,21 +50,14 @@
         CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), notificationName, NULL, NULL, YES);
     }
 }
-- (void)selectApp{
-    SparkAppListTableViewController* s = [[SparkAppListTableViewController alloc] initWithIdentifier:@"com.brend0n.fgotw60fpspref" andKey:@"apps"];
-    [self.navigationController pushViewController:s animated:YES];
-    self.navigationItem.hidesBackButton = FALSE;
+-(void)showInfo{
+  UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
+  self.navigationItem.backBarButtonItem = backItem; 
+  [self.navigationController pushViewController:[[BDInfoListController alloc] init] animated:TRUE];
 }
-- (void)open_bilibili{
-    UIApplication *app = [UIApplication sharedApplication];
-    if ([app canOpenURL:[NSURL URLWithString:@"bilibili://space/22182611"]]) {
-        [app openURL:[NSURL URLWithString:@"bilibili://space/22182611"]];
-    } else {
-        [app openURL:[NSURL URLWithString:@"https://space.bilibili.com/22182611"]];
-    }
-}
-- (void)open_github{
-  UIApplication *app = [UIApplication sharedApplication];
-  [app openURL:[NSURL URLWithString:@"https://github.com/brendonjkding/fgo60FPS"]];
+-(void)selectApp{
+  UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
+  self.navigationItem.backBarButtonItem = backItem; 
+  [self.navigationController pushViewController:[[BDAppListController alloc] initWithDefaults:@"com.brend0n.fgotw60fpspref" andKey:@"apps"] animated:TRUE];
 }
 @end

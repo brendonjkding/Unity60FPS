@@ -8,19 +8,20 @@ long aslr;
 long ad_fps;
 uint64_t main_address;
 long main_size;
-bool enabled=0;
+BOOL enabled=0;
+int customFps=60;
 
 static long (*orig_setTargetFrameRate)(int fps)=0;
 static long mysetTargetFrameRate(int fps){
 	// NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
-	long ret=orig_setTargetFrameRate(enabled?60:fps);
+	long ret=orig_setTargetFrameRate(enabled?customFps:fps);
 	return ret;
 }
 static long (*orig_callback)(int fps)=0;
 static long mycallback(int fps){
 	// NSLog(@"orig_callback called");
-	if(enabled) *(int*)ad_fps=60;
-	long ret=orig_callback(enabled?60:fps);
+	if(enabled) *(int*)ad_fps=customFps;
+	long ret=orig_callback(enabled?customFps:fps);
 	return ret;
 }
 
@@ -154,14 +155,15 @@ void hook_setTargetFrameRate(){
 void loadPref(){
 	NSLog(@"loadPref..........");
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.brend0n.fgotw60fpspref.plist"];
-	if(!prefs) enabled=1;
-	else enabled=[prefs[@"enabled"] boolValue]==YES?1:0;
-	int fps=enabled?60:30;
-	// NSLog(@"now fps: %d",fps);
-	if(orig_setTargetFrameRate) orig_setTargetFrameRate(fps);
+	if(!prefs) prefs=[NSMutableDictionary new];
+	enabled=prefs[@"enabled"]?[prefs[@"enabled"] boolValue]:YES;
+	customFps=prefs[@"customFps"]?[prefs[@"customFps"] intValue]:60;
+	NSLog(@"now fps: %d",customFps);
+	if(!enabled) return;
+	if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
 	if(orig_callback) {
-		if(enabled) *(int*)ad_fps=60;
-		orig_callback(fps);
+		if(enabled) *(int*)ad_fps=customFps;
+		orig_callback(customFps);
 		
 	}
 }

@@ -1,10 +1,11 @@
 Package: com.brend0n.fgotw60fps
 Name: fgotw60fps
-Depends: mobilesubstrate,preferenceloader,com.spark.libsparkapplist
-Version: 0.0.6
+Depends: mobilesubstrate,preferenceloader,applist
+Version: 0.0.7
 Architecture: iphoneos-arm
 Description: hook法，国服/台服均可用
  更新:
+ 0.0.7 添加自定义fps的选项；更换依赖
  0.0.6 解决部分unity游戏开启后崩溃的问题
  0.0.5 增加在其它游戏中开启的选项
  0.0.4 修复设置图标bug。修复设置页面与我的其它插件冲突bug

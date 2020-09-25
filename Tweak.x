@@ -13,13 +13,17 @@ int customFps=60;
 
 static long (*orig_setTargetFrameRate)(int fps)=0;
 static long mysetTargetFrameRate(int fps){
-	// NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
+#if DEBUG
+	NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
+#endif
 	long ret=orig_setTargetFrameRate(enabled?customFps:fps);
 	return ret;
 }
 static long (*orig_callback)(int fps)=0;
 static long mycallback(int fps){
-	// NSLog(@"orig_callback called");
+#if DEBUG
+	NSLog(@"orig_callback called, orig_rate: %d",fps);
+#endif
 	if(enabled) *(int*)ad_fps=customFps;
 	long ret=orig_callback(enabled?customFps:fps);
 	return ret;
@@ -179,7 +183,20 @@ bool is_enabled_app(){
 	
 	return false;
 }
-
+@interface UnityView:UIView
+@end
+#define kFPSLabelWidth 50
+#define kFPSLabelHeight 20
+%hook UnityView
+-(void)touchesBegan:(id)touches withEvent:(id)event{
+	static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        if(orig_callback) orig_callback(customFps);
+        if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
+    });
+	%orig;
+}
+%end
 
 %ctor {
 	if(!is_enabled_app()) return;

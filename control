@@ -1,10 +1,11 @@
 Package: com.brend0n.fgotw60fps
-Name: fgotw60fps
+Name: Unity60fps(fgotw60fps)
 Depends: mobilesubstrate,preferenceloader,applist
-Version: 0.0.7
+Version: 0.0.8
 Architecture: iphoneos-arm
 Description: hook法，国服/台服均可用
  更新:
+ 0.0.8 解决部分游戏未自动开启的问题
  0.0.7 添加自定义fps的选项；更换依赖
  0.0.6 解决部分unity游戏开启后崩溃的问题
  0.0.5 增加在其它游戏中开启的选项

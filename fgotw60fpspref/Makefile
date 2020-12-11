@@ -1,10 +1,5 @@
-# TARGET = iphone:clang:11.2:9.0
 include $(THEOS)/makefiles/common.mk
-ifeq ($(debug),0)
-	ARCHS= arm64 arm64e
-else
-	ARCHS= arm64 
-endif
+ARCHS= arm64 arm64e
 BUNDLE_NAME = fgotw60fpspref
 
 fgotw60fpspref_FILES = $(wildcard *.m) 

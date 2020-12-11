@@ -191,8 +191,10 @@ bool is_enabled_app(){
 -(void)touchesBegan:(id)touches withEvent:(id)event{
 	static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if(orig_callback) orig_callback(customFps);
-        if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
+    	if(enabled){
+	        if(orig_callback) orig_callback(customFps);
+	        if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
+	    }
     });
 	%orig;
 }

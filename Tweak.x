@@ -1,35 +1,43 @@
 #import <substrate.h>
 #import <notify.h>
-#include <string.h>
-#import <Foundation/Foundation.h>
-#import "readmem/readmem.h"
+#import <string.h>
+#import <mach-o/dyld.h>
+#import <mach/mach.h>
 
-long aslr;
-long ad_fps;
-uint64_t main_address;
-long main_size;
-BOOL enabled=0;
-int customFps=60;
+kern_return_t mach_vm_region
+(
+	vm_map_t target_task,
+	mach_vm_address_t *address,
+	mach_vm_size_t *size,
+	vm_region_flavor_t flavor,
+	vm_region_info_t info,
+	mach_msg_type_number_t *infoCnt,
+	mach_port_t *object_name
+);
 
-static long (*orig_setTargetFrameRate)(int fps)=0;
-static long mysetTargetFrameRate(int fps){
-#if DEBUG
+static BOOL enabled;
+static int customFps;
+static BOOL setFPSOnFirstTouch;
+
+static long aslr;
+static long ad_fps;
+
+static long (*orig_setTargetFrameRate)(int fps);
+static long my_setTargetFrameRate(int fps){
 	NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
-#endif
 	long ret=orig_setTargetFrameRate(enabled?customFps:fps);
 	return ret;
 }
-static long (*orig_callback)(int fps)=0;
-static long mycallback(int fps){
-#if DEBUG
-	NSLog(@"orig_callback called, orig_rate: %d",fps);
-#endif
+static long (*orig_setTargetFrameRate2)(int fps);
+static long my_setTargetFrameRate2(int fps){
+	NSLog(@"orig_setTargetFrameRate2 called, orig_rate: %d",fps);
 	if(enabled) *(int*)ad_fps=customFps;
-	long ret=orig_callback(enabled?customFps:fps);
+	long ret=orig_setTargetFrameRate2(enabled?customFps:fps);
 	return ret;
 }
 
-
+#pragma mark helper function
+// thanks to https://reverseengineering.stackexchange.com/questions/15418/getting-function-address-by-reading-adrp-and-add-instruction-values
 
 static inline uint64_t get_page_address_64(uint64_t addr, uint32_t pagesize)
 {
@@ -41,8 +49,6 @@ static inline bool is_adrp(int32_t ins){
 static inline bool is_64add(int32_t ins){
     return ((ins>>23)&0b111111111)==0b100100010;
 }
-
-
 static inline uint64_t get_adrp_address(uint32_t ins,long pc){
 	uint32_t instr, immlo, immhi;
     int32_t value;
@@ -86,128 +92,176 @@ static inline uint64_t get_add_value(uint32_t ins){
 static inline uint64_t get_str_imm12(uint32_t ins){
 	return 4*((ins&0x3ffc00)>>10);
 }
-//end----------
+// helper function
 
-long find_ad(long ad_ref){
+static kern_return_t get_region_address_and_size(mach_vm_offset_t *address_p, mach_vm_size_t *size_p){
+	vm_region_basic_info_data_64_t info;
+	mach_msg_type_number_t count = VM_REGION_BASIC_INFO_COUNT_64;
+	mach_port_t object_name;
+	kern_return_t ret = mach_vm_region(mach_task_self(), address_p, size_p, VM_REGION_BASIC_INFO, (vm_region_info_t)&info, &count, &object_name);
+	vm_prot_t protection = info.protection;
+	if(!protection){
+		*address_p += *size_p;
+		return get_region_address_and_size(address_p, size_p);
+	}
+	return ret;
+}
+
+static long find_ad_set_timeScale_b(long ad_ref){
 	ad_ref+=8;
 	NSLog(@"ad_ref: 0x%lx",ad_ref-aslr);
 
 	uint32_t ins=*(int*)ad_ref;
-	long ad_mid=get_adrp_address(ins,ad_ref);
-	NSLog(@"ad_mid: 0x%lx",ad_mid-aslr);
+	long ad_set_timeScale=get_adrp_address(ins,ad_ref);
+	NSLog(@"ad_set_timeScale: 0x%lx",ad_set_timeScale-aslr);
 
 
-	ins=*(int*)ad_mid;
-	long ad_final=get_b_address(ins,ad_mid);
-	NSLog(@"ad_final: 0x%lx",ad_final-aslr);
+	ins=*(int*)ad_set_timeScale;
+	long ad_set_timeScale_b=get_b_address(ins,ad_set_timeScale);
+	NSLog(@"ad_set_timeScale_b: 0x%lx",ad_set_timeScale_b-aslr);
 
-	return ad_final;
+	return ad_set_timeScale_b;
 }
-long search_targetins(long ad_str){
-	for(long ad=main_address;ad<main_address+main_size;ad++){
-		int32_t ins=*(int32_t*)ad;
-		int32_t ins2=*(int32_t*)(ad+4);
-		if(is_adrp(ins)&&is_64add(ins2)){
-			uint64_t ad_t=get_adrp_address(ins,ad)+get_add_value(ins2);;
-			if(ad_t==ad_str) return ad;
+
+static long find_ref_to_str(long ad_str){
+	mach_vm_offset_t address=0;
+	mach_vm_size_t size=0;
+	while(get_region_address_and_size(&address,&size)==KERN_SUCCESS){
+		NSLog(@"0x%lx 0x%lx",(long)address,(long)address+(long)size);
+		for(long ad=address;ad+4<address+size;ad+=4){
+			int32_t ins=*(int32_t*)ad;
+			int32_t ins2=*(int32_t*)(ad+4);
+			if(is_adrp(ins)&&is_64add(ins2)){
+				uint64_t ad_t=get_adrp_address(ins,ad)+get_add_value(ins2);;
+				if(ad_t==ad_str) return ad;
+			}
 		}
-	}
-	return false;
-}
-long search_targetstr(){
-	for(long ad=main_address;ad<main_address+main_size;ad++){
-			static const char *t="UnityEngine.Application::set_targetFrameRate";
-			if(!strcmp((const char*)(ad),t)) return ad;
-	}
-	return false;
-}
-
-void hook_callback(long ad_t){
-	ad_fps=get_adrp_address(*(uint32_t*)ad_t,ad_t)+get_str_imm12(*(uint32_t*)(ad_t+0x4));
-	NSLog(@"ad_fps: 0x%lx",ad_fps-aslr);
-
-	long ad_callback=get_b_address(*(uint32_t*)(ad_t+0x8),ad_t+0x8);
-	NSLog(@"ad_callback: 0x%lx",ad_callback-aslr);
-
-	NSLog(@"hook callback start");
-	MSHookFunction((void *)ad_callback, (void *)mycallback, (void **)&orig_callback);
-	NSLog(@"hook callback success");
-}
-
-void hook_setTargetFrameRate(){
-	find_main_binary(mach_task_self(),&main_address);
-	main_size=get_image_size(main_address,mach_task_self());
-	NSLog(@"[*] main: 0x%llx size: %ldMB",main_address-aslr,main_size/1024/1024);
-
-    long ad_str=search_targetstr();
-    NSLog(@"ad_str:0x%lx",ad_str-aslr);
-
-    long ad_ref=search_targetins(ad_str);
-    long ad_t=find_ad(ad_ref);
-    if(is_adrp(*(uint32_t*)ad_t)){
-		hook_callback(ad_t);
-		return;
+		address+=size;
 	}
 	
-	NSLog(@"hook setTargetFrameRate start");
-	MSHookFunction((void *)ad_t, (void *)mysetTargetFrameRate, (void **)&orig_setTargetFrameRate);
-	NSLog(@"hook setTargetFrameRate success");
-
-	return;
+	return false;
+}
+static long find_ad_ref(){
+	mach_vm_offset_t address=0;
+	mach_vm_size_t size=0;
+	while(get_region_address_and_size(&address,&size)==KERN_SUCCESS){
+		// NSLog(@"0x%lx 0x%lx",(long)address,(long)address+(long)size);
+		for(long ad=address;ad<address+size;ad++){
+			static const char *t="UnityEngine.Application::set_targetFrameRate";
+			if(!strcmp((const char*)(ad),t)) {
+				static int count=0;
+				NSLog(@"ad_str candidate %d: 0x%lx",++count,ad);
+				long ad_ref=find_ref_to_str(ad);
+				if(ad_ref) return ad_ref;
+			}
+		}
+		address+=size;
+	}
+	
+	return false;
 }
 
-void loadPref(){
-	NSLog(@"loadPref..........");
-	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.brend0n.fgotw60fpspref.plist"];
-	if(!prefs) prefs=[NSMutableDictionary new];
+static void loadFrameWork(){
+	aslr=_dyld_get_image_vmaddr_slide(0);
+	NSString*bundlePath=[NSString stringWithFormat:@"%@/Frameworks/UnityFramework.framework",[[NSBundle mainBundle] bundlePath]];
+	NSBundle *bundle=[NSBundle bundleWithPath:bundlePath];
+	[bundle load];
+	if([bundle isLoaded]){
+		for(int i=0;i<_dyld_image_count();i++){
+			const char*image_name=_dyld_get_image_name(i);
+			if(strstr(image_name, "UnityFramework.framework/UnityFramework")){
+				aslr=_dyld_get_image_vmaddr_slide(i);
+			}
+		}
+	}
+	NSLog(@"aslr: 0x%lx",(long)aslr);
+}
+static void startHooking(){
+    long ad_ref=find_ad_ref();
+
+    long ad_set_timeScale_b=find_ad_set_timeScale_b(ad_ref);
+    if(is_adrp(*(uint32_t*)ad_set_timeScale_b)){// too short to hook
+    	ad_fps=get_adrp_address(*(uint32_t*)ad_set_timeScale_b,ad_set_timeScale_b)+get_str_imm12(*(uint32_t*)(ad_set_timeScale_b+0x4));
+		NSLog(@"ad_fps: 0x%lx",ad_fps-aslr);
+
+		long ad_set_timeScale_b_b=get_b_address(*(uint32_t*)(ad_set_timeScale_b+0x8),ad_set_timeScale_b+0x8);
+		NSLog(@"ad_set_timeScale_b_b: 0x%lx",ad_set_timeScale_b_b-aslr);
+
+		NSLog(@"hook setTargetFrameRate2 start");
+		MSHookFunction((void *)ad_set_timeScale_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2);
+		NSLog(@"hook setTargetFrameRate2 success");
+		return;
+	}
+	else{
+		NSLog(@"hook setTargetFrameRate start");
+		MSHookFunction((void *)ad_set_timeScale_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate);
+		NSLog(@"hook setTargetFrameRate success");
+	}
+}
+
+static void loadPref(){
+	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
 	enabled=prefs[@"enabled"]?[prefs[@"enabled"] boolValue]:YES;
 	customFps=prefs[@"customFps"]?[prefs[@"customFps"] intValue]:60;
-	NSLog(@"now fps: %d",customFps);
-	if(!enabled) return;
+	setFPSOnFirstTouch=prefs[@"setFPSOnFirstTouch"]?[prefs[@"setFPSOnFirstTouch"] boolValue]:YES;
+	NSLog(@"customFps: %d",customFps);
+
 	if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
-	if(orig_callback) {
-		if(enabled) *(int*)ad_fps=customFps;
-		orig_callback(customFps);
+	if(orig_setTargetFrameRate2) {
+		*(int*)ad_fps=customFps;
+		orig_setTargetFrameRate2(customFps);
 		
 	}
 }
-bool is_enabled_app(){
+static BOOL isEnabledApp(){
 	NSString* bundleIdentifier=[[NSBundle mainBundle] bundleIdentifier];
-	NSArray *fgo_ids=@[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"];
-	if([fgo_ids containsObject:bundleIdentifier])return true;
-	
-	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.brend0n.fgotw60fpspref.plist"];
-	NSArray *apps=prefs?prefs[@"apps"]:nil;
-	if(!apps) return false;
-	if([apps containsObject:bundleIdentifier]) return true;
-	
-	return false;
+	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
+	return [prefs[@"apps"] containsObject:bundleIdentifier];
 }
-@interface UnityView:UIView
-@end
-#define kFPSLabelWidth 50
-#define kFPSLabelHeight 20
+
 %hook UnityView
 -(void)touchesBegan:(id)touches withEvent:(id)event{
+	%orig;
+	if(!enabled||!setFPSOnFirstTouch) return;
 	static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-    	if(enabled){
-	        if(orig_callback) orig_callback(customFps);
-	        if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
-	    }
+        if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
+		if(orig_setTargetFrameRate2) {
+			*(int*)ad_fps=customFps;
+			orig_setTargetFrameRate2(customFps);
+			
+		}
     });
-	%orig;
 }
 %end
 
 %ctor {
-	if(!is_enabled_app()) return;
+	// 0.0.8 compatibility
+	if([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:kSpringBoardBundleId]){
+		NSMutableDictionary *deprecatedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kDeprecatedPrefPath];
+		if(deprecatedPrefs){
+			deprecatedPrefs[@"apps"]=[deprecatedPrefs[@"apps"] mutableCopy];
+			// note: Adding fgo(jp,en) bundleIds doesn't mean this tweak can bypass their jb detection.
+			for(NSString*fgoBundleId in @[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"]){
+				if(![deprecatedPrefs[@"apps"] containsObject:fgoBundleId]){
+					[deprecatedPrefs[@"apps"] addObject:fgoBundleId];
+				}
+			}
+			[deprecatedPrefs writeToFile:kPrefPath atomically:YES];
+			[[NSFileManager defaultManager] removeItemAtPath:kDeprecatedPrefPath error:nil];
+		}
+	}
+	// 0.0.8 compatibility end
+
+	if(!isEnabledApp()) return;
+
 	loadPref();
-	aslr=_dyld_get_image_vmaddr_slide(0);
-	NSLog(@"ASLR=0x%lx",aslr);
-	hook_setTargetFrameRate();
+
+	loadFrameWork();
+	startHooking();
+
 	int token = 0;
-	notify_register_dispatch("com.brend0n.fgotw60fpspref/loadPref", &token, dispatch_get_main_queue(), ^(int token) {
+	notify_register_dispatch("com.brend0n.unity60fpspref/loadPref", &token, dispatch_get_main_queue(), ^(int token) {
 		loadPref();
 	});
 }

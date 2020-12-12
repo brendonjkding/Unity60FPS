@@ -1,18 +1,9 @@
 Package: com.brend0n.fgotw60fps
-Name: Unity60fps(fgotw60fps)
-Depends: mobilesubstrate,preferenceloader,applist
-Version: 0.0.8
+Name: Unity60FPS
+Depends: mobilesubstrate, preferenceloader, applist
+Version: 0.0.9
 Architecture: iphoneos-arm
-Description: hook法，国服/台服均可用
- 更新:
- 0.0.8 解决部分游戏未自动开启的问题
- 0.0.7 添加自定义fps的选项；更换依赖
- 0.0.6 解决部分unity游戏开启后崩溃的问题
- 0.0.5 增加在其它游戏中开启的选项
- 0.0.4 修复设置图标bug。修复设置页面与我的其它插件冲突bug
- 0.0.3 设置中增加开关
- 0.0.2 理论游戏更新后自动适配
- 0.0.1 上架
+Description: Force Unity Games render at custom framerate(60/30).
 Maintainer: Brend0n <brendonjkding@126.com>
 Author: Brend0n <brendonjkding@126.com>
 Section: Tweaks

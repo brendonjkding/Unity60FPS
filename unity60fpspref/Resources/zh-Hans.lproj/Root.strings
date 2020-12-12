@@ -1,0 +1,22 @@
+"CHOOSE_ENABLED_APP"="选择开启的Unity游戏";
+"ABOUT_AUTHOR"="作者";
+"ACTION_YES"="是";
+"ACTION_NO"="否";
+"ENABLED"="启用";
+"SELECT_ALL"="全选";
+"DESELECT_ALL"="全不选";
+"CANCEL"="取消";
+"SELECT_DESELECT_ALL"="全选/全不选";
+
+"WARNING"="由于工作原理是直接注入游戏引擎，使用本插件 ->自行<- 承担风险";
+
+"DESCRIPTION"="1. iOS上最终帧数似乎受屏幕垂直同步影响只会是60或30。
+2. 一般情况下设为60即可
+3. 某些设备上设为45效果更好
+4. 如果在第一次点击屏幕时闪退，关闭\"第一次点击时设置FPS\"选项
+5. 我不知道在高刷屏设备上设置120是否有效
+6. 可以使用我制作的另一插件FPSIndicator查看实时帧数
+";
+
+"CUSTOM_FPS"="自定义帧数";
+"SET_FPS_ON_FIRST_TOUCH"="第一次点击时设置FPS";

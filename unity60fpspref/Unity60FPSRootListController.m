@@ -1,7 +1,7 @@
-#include "FGO60FPSRootListController.h"
+#include "Unity60FPSRootListController.h"
 #import "BDAppListController.h"
 #import "BDInfoListController.h"
-@implementation FGO60FPSRootListController
+@implementation Unity60FPSRootListController
 
 - (NSArray *)specifiers {
 	if (!_specifiers) {
@@ -9,16 +9,16 @@
 
         PSSpecifier* spec;
         
-        spec = [PSSpecifier preferenceSpecifierNamed:@"关于作者"
+        spec = [PSSpecifier preferenceSpecifierNamed:@""
                                               target:self
                                               set:Nil
                                               get:Nil
                                               detail:Nil
                                               cell:PSGroupCell
                                               edit:Nil];
-        [spec setProperty:@"作者" forKey:@"label"];
+        [spec setProperty:@"" forKey:@"label"];
         [_specifiers addObject:spec];
-        spec = [PSSpecifier preferenceSpecifierNamed:@"关于作者"
+        spec = [PSSpecifier preferenceSpecifierNamed:FPSNSLocalizedString(@"ABOUT_AUTHOR")
                                               target:self
                                                  set:NULL
                                                  get:NULL
@@ -58,6 +58,6 @@
 -(void)selectApp{
   UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
   self.navigationItem.backBarButtonItem = backItem; 
-  [self.navigationController pushViewController:[[BDAppListController alloc] initWithDefaults:@"com.brend0n.fgotw60fpspref" andKey:@"apps"] animated:TRUE];
+  [self.navigationController pushViewController:[[BDAppListController alloc] initWithDefaults:@"com.brend0n.unity60fpspref" andKey:@"apps"] animated:TRUE];
 }
 @end

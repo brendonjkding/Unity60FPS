@@ -1,0 +1,22 @@
+"CHOOSE_ENABLED_APP"="Choose Enabled Unity Games";
+"ABOUT_AUTHOR"="Author";
+"ACTION_YES"="YES";
+"ACTION_NO"="NO";
+"ENABLED"="Enabled";
+"SELECT_ALL"="Select All";
+"DESELECT_ALL"="Deselect All";
+"CANCEL"="Cancel";
+"SELECT_DESELECT_ALL"="Select/Deselect All";
+
+"WARNING"="Due to the way it works, hooking directly to game engine, use this Tweak AT YOUR OWN RISK";
+
+"DESCRIPTION"="1. Note that not any values is valid. Due to vsync, it seems the ultimate framerate will be 60 or 30. 
+2. To render at 60 FPS, typically you set the framerate to 60. 
+3. But on some devices, you may find that 45 is a better value. I don't know the reason, but it works.
+4. If a game crash when you first touch the screen. Turn off \"Set FPS On First Touch\" option
+5. I don't know whether set FPS to 120 is valid on 120Hz device
+6. You can use my another Tweak called FPSIndicator to show real-time FPS
+";
+
+"CUSTOM_FPS"="Custom FPS";
+"SET_FPS_ON_FIRST_TOUCH"="Set FPS On First Touch";

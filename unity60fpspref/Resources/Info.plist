@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>fgotw60fpspref</string>
+	<string>unity60fpspref</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.brend0n.fgotw60fpspref</string>
+	<string>com.brend0n.unity60fpspref</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -19,6 +19,6 @@
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
 	<key>NSPrincipalClass</key>
-	<string>FGO60FPSRootListController</string>
+	<string>Unity60FPSRootListController</string>
 </dict>
 </plist>

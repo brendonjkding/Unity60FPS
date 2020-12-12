@@ -1,0 +1,21 @@
+#ifdef __OBJC__
+#define likely(E) __builtin_expect(!!(E),1)
+#define unlikely(E) __builtin_expect(!!(E),0)
+
+#define kPrefPath @"/var/mobile/Library/Preferences/com.brend0n.unity60fpspref.plist"
+#define kDeprecatedPrefPath @"/var/mobile/Library/Preferences/com.brend0n.fgotw60fpspref.plist"
+#define kBundlePath @"/Library/PreferenceBundles/unity60fpspref.bundle"
+
+#define kSpringBoardBundleId @"com.apple.springboard"
+
+#define FPSNSLocalizedString(key) NSLocalizedStringFromTableInBundle((key),@"Root",[NSBundle bundleWithPath:kBundlePath],nil)
+
+#if DEBUG
+#else
+#define NSLog(FORMAT, ...)
+#endif
+
+#import <UIKit/UIKit.h>
+extern UIApplication* UIApp;
+
+#endif //__objc__

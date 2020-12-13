@@ -107,20 +107,20 @@ static kern_return_t get_region_address_and_size(mach_vm_offset_t *address_p, ma
 	return ret;
 }
 
-static long find_ad_set_timeScale_b(long ad_ref){
+static long find_ad_set_targetFrameRate_b(long ad_ref){
 	ad_ref+=8;
 	NSLog(@"ad_ref: 0x%lx",ad_ref-aslr);
 
 	uint32_t ins=*(int*)ad_ref;
-	long ad_set_timeScale=get_adrp_address(ins,ad_ref);
-	NSLog(@"ad_set_timeScale: 0x%lx",ad_set_timeScale-aslr);
+	long ad_set_targetFrameRate=get_adrp_address(ins,ad_ref);
+	NSLog(@"ad_set_targetFrameRate: 0x%lx",ad_set_targetFrameRate-aslr);
 
 
-	ins=*(int*)ad_set_timeScale;
-	long ad_set_timeScale_b=get_b_address(ins,ad_set_timeScale);
-	NSLog(@"ad_set_timeScale_b: 0x%lx",ad_set_timeScale_b-aslr);
+	ins=*(int*)ad_set_targetFrameRate;
+	long ad_set_targetFrameRate_b=get_b_address(ins,ad_set_targetFrameRate);
+	NSLog(@"ad_set_targetFrameRate_b: 0x%lx",ad_set_targetFrameRate_b-aslr);
 
-	return ad_set_timeScale_b;
+	return ad_set_targetFrameRate_b;
 }
 
 static long find_ref_to_str(long ad_str){
@@ -179,22 +179,22 @@ static void loadFrameWork(){
 static void startHooking(){
     long ad_ref=find_ad_ref();
 
-    long ad_set_timeScale_b=find_ad_set_timeScale_b(ad_ref);
-    if(is_adrp(*(uint32_t*)ad_set_timeScale_b)){// too short to hook
-    	ad_fps=get_adrp_address(*(uint32_t*)ad_set_timeScale_b,ad_set_timeScale_b)+get_str_imm12(*(uint32_t*)(ad_set_timeScale_b+0x4));
+    long ad_set_targetFrameRate_b=find_ad_set_targetFrameRate_b(ad_ref);
+    if(is_adrp(*(uint32_t*)ad_set_targetFrameRate_b)){// too short to hook
+    	ad_fps=get_adrp_address(*(uint32_t*)ad_set_targetFrameRate_b,ad_set_targetFrameRate_b)+get_str_imm12(*(uint32_t*)(ad_set_targetFrameRate_b+0x4));
 		NSLog(@"ad_fps: 0x%lx",ad_fps-aslr);
 
-		long ad_set_timeScale_b_b=get_b_address(*(uint32_t*)(ad_set_timeScale_b+0x8),ad_set_timeScale_b+0x8);
-		NSLog(@"ad_set_timeScale_b_b: 0x%lx",ad_set_timeScale_b_b-aslr);
+		long ad_set_targetFrameRate_b_b=get_b_address(*(uint32_t*)(ad_set_targetFrameRate_b+0x8),ad_set_targetFrameRate_b+0x8);
+		NSLog(@"ad_set_targetFrameRate_b_b: 0x%lx",ad_set_targetFrameRate_b_b-aslr);
 
 		NSLog(@"hook setTargetFrameRate2 start");
-		MSHookFunction((void *)ad_set_timeScale_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2);
+		MSHookFunction((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2);
 		NSLog(@"hook setTargetFrameRate2 success");
 		return;
 	}
 	else{
 		NSLog(@"hook setTargetFrameRate start");
-		MSHookFunction((void *)ad_set_timeScale_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate);
+		MSHookFunction((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate);
 		NSLog(@"hook setTargetFrameRate success");
 	}
 }

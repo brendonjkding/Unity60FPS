@@ -216,6 +216,8 @@ static void loadPref(){
 static BOOL isEnabledApp(){
 	NSString* bundleIdentifier=[[NSBundle mainBundle] bundleIdentifier];
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
+	enabled=prefs[@"enabled"]?[prefs[@"enabled"] boolValue]:YES;
+	if(!enabled) return NO;
 	return [prefs[@"apps"] containsObject:bundleIdentifier];
 }
 

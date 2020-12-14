@@ -234,24 +234,29 @@ static BOOL isEnabledApp(){
     });
 }
 %end
-
-%ctor {
+static void backwardsCompatibility(){
 	// 0.0.8 compatibility
-	if([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:kSpringBoardBundleId]){
-		NSMutableDictionary *deprecatedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kDeprecatedPrefPath];
-		if(deprecatedPrefs){
-			deprecatedPrefs[@"apps"]=[deprecatedPrefs[@"apps"] mutableCopy];
-			// note: Adding fgo(jp,en) bundleIds doesn't mean this tweak can bypass their jb detection.
-			for(NSString*fgoBundleId in @[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"]){
-				if(![deprecatedPrefs[@"apps"] containsObject:fgoBundleId]){
-					[deprecatedPrefs[@"apps"] addObject:fgoBundleId];
-				}
-			}
-			[deprecatedPrefs writeToFile:kPrefPath atomically:YES];
+	NSMutableDictionary *deprecatedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kDeprecatedPrefPath];
+	if(deprecatedPrefs){
+		if([[NSFileManager defaultManager] fileExistsAtPath:kPrefPath]){
 			[[NSFileManager defaultManager] removeItemAtPath:kDeprecatedPrefPath error:nil];
+			return;
 		}
+		deprecatedPrefs[@"apps"]=[deprecatedPrefs[@"apps"] mutableCopy];
+		// note: Adding fgo(jp,en) bundleIds doesn't mean this tweak can bypass their jb detection.
+		for(NSString*fgoBundleId in @[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"]){
+			if(![deprecatedPrefs[@"apps"] containsObject:fgoBundleId]){
+				[deprecatedPrefs[@"apps"] addObject:fgoBundleId];
+			}
+		}
+		[deprecatedPrefs writeToFile:kPrefPath atomically:YES];
+		[[NSFileManager defaultManager] removeItemAtPath:kDeprecatedPrefPath error:nil];
 	}
-	// 0.0.8 compatibility end
+}
+%ctor {
+	if([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:kSpringBoardBundleId]){
+		backwardsCompatibility();
+	}
 
 	if(!isEnabledApp()) return;
 

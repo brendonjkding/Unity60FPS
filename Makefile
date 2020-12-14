@@ -1,5 +1,5 @@
 TARGET = iphone:clang:11.2:7.0
-ARCHS = arm64
+ARCHS = arm64 arm64e
 
 
 TWEAK_NAME = unity60fps

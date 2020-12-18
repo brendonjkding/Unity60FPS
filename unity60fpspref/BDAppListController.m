@@ -40,20 +40,20 @@
   return self;
 }
 -(void)loadView{
-	[super loadView];
+  [super loadView];
 
   self.navigationItem.title = @"";
   
   self.searchController = [[UISearchController alloc]initWithSearchResultsController:nil];
   self.searchController.searchResultsUpdater = self;
-  self.searchController.obscuresBackgroundDuringPresentation = NO;
+  if(@available(iOS 9.1, *)) self.searchController.obscuresBackgroundDuringPresentation = NO;
 
 
   if (@available(iOS 11.0, *)) {
       self.navigationItem.searchController = self.searchController;
       self.navigationItem.hidesSearchBarWhenScrolling=NO;
   } else {
-      self.tableView.tableHeaderView = self.searchController.searchBar;
+      self.table.tableHeaderView = self.searchController.searchBar;
   }
     
 }
@@ -62,8 +62,8 @@
   [self reloadSpecifiers];
 }
 - (NSArray *)specifiers {
-	if (!_specifiers) {
-		_specifiers = [NSMutableArray arrayWithCapacity:256];
+  if (!_specifiers) {
+    _specifiers = [NSMutableArray arrayWithCapacity:256];
     // sort the apps by display name. displayIdentifiers is an autoreleased object.
     NSArray *sortedDisplayIdentifiers;
     NSDictionary *applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:[NSPredicate predicateWithFormat:@"isInternalApplication = FALSE"]
@@ -95,7 +95,7 @@
     }
 }
 
-	return _specifiers;
+  return _specifiers;
 }
 - (id)readPreferenceValue:(PSSpecifier*)specifier {
     NSString *path = [NSString stringWithFormat:@"/User/Library/Preferences/%@.plist", specifier.properties[@"defaults"]];
@@ -128,6 +128,4 @@
         CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), notificationName, NULL, NULL, YES);
     }
 }
-
-
 @end

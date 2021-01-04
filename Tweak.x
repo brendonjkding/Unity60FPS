@@ -194,6 +194,7 @@ static void startHooking(){
 		}
 		else{
 			ZzBuildHook((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2, NULL, NULL);
+			ZzEnableHook((void *)ad_set_targetFrameRate_b_b);
 		}
 		NSLog(@"hook setTargetFrameRate2 success");
 		return;
@@ -205,6 +206,7 @@ static void startHooking(){
 		}
 		else{
 			ZzBuildHook((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate, NULL, NULL);
+			ZzEnableHook((void *)ad_set_targetFrameRate_b);
 		}
 		NSLog(@"hook setTargetFrameRate success");
 	}

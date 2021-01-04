@@ -3,6 +3,7 @@
 #import <string.h>
 #import <mach-o/dyld.h>
 #import <mach/mach.h>
+#import <hookzz.h>
 
 kern_return_t mach_vm_region
 (
@@ -188,13 +189,23 @@ static void startHooking(){
 		NSLog(@"ad_set_targetFrameRate_b_b: 0x%lx",ad_set_targetFrameRate_b_b-aslr);
 
 		NSLog(@"hook setTargetFrameRate2 start");
-		MSHookFunction((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2);
+		if(!(access("/usr/lib/libhooker.dylib",F_OK)==0)){
+			MSHookFunction((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2);
+		}
+		else{
+			ZzBuildHook((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2, NULL, NULL);
+		}
 		NSLog(@"hook setTargetFrameRate2 success");
 		return;
 	}
 	else{
 		NSLog(@"hook setTargetFrameRate start");
-		MSHookFunction((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate);
+		if(!(access("/usr/lib/libhooker.dylib",F_OK)==0)){
+			MSHookFunction((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate);
+		}
+		else{
+			ZzBuildHook((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate, NULL, NULL);
+		}
 		NSLog(@"hook setTargetFrameRate success");
 	}
 }
@@ -236,30 +247,8 @@ static BOOL isEnabledApp(){
     });
 }
 %end
-static void backwardsCompatibility(){
-	// 0.0.8 compatibility
-	NSMutableDictionary *deprecatedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kDeprecatedPrefPath];
-	if(deprecatedPrefs){
-		if([[NSFileManager defaultManager] fileExistsAtPath:kPrefPath]){
-			[[NSFileManager defaultManager] removeItemAtPath:kDeprecatedPrefPath error:nil];
-			return;
-		}
-		deprecatedPrefs[@"apps"]=[deprecatedPrefs[@"apps"] mutableCopy];
-		// note: Adding fgo(jp,en) bundleIds doesn't mean this tweak can bypass their jb detection.
-		for(NSString*fgoBundleId in @[@"com.xiaomeng.fategrandorder",@"com.bilibili.fatego",@"com.aniplex.fategrandorder",@"com.aniplex.fategrandorder.en"]){
-			if(![deprecatedPrefs[@"apps"] containsObject:fgoBundleId]){
-				[deprecatedPrefs[@"apps"] addObject:fgoBundleId];
-			}
-		}
-		[deprecatedPrefs writeToFile:kPrefPath atomically:YES];
-		[[NSFileManager defaultManager] removeItemAtPath:kDeprecatedPrefPath error:nil];
-	}
-}
+#pragma mark ctor
 %ctor {
-	if([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:kSpringBoardBundleId]){
-		backwardsCompatibility();
-	}
-
 	if(!isEnabledApp()) return;
 
 	loadPref();

@@ -1,9 +1,10 @@
 Package: com.brend0n.fgotw60fps
 Name: Unity60FPS
 Depends: mobilesubstrate, preferenceloader, applist
-Version: 0.0.9r3
+Version: 0.1.0b1
 Architecture: iphoneos-arm
 Description: Force Unity Games render at custom framerate(60/30).
+ 0.1.0: support libhooker
  0.0.9r3: fix low iOS version compatibility
  0.0.9r2: this is actually r1
 Maintainer: Brend0n <brendonjkding@126.com>

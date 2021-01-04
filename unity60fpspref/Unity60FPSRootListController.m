@@ -1,6 +1,7 @@
 #include "Unity60FPSRootListController.h"
 #import "BDAppListController.h"
 #import "BDInfoListController.h"
+#import "FPSLicenseViewController.h"
 @implementation Unity60FPSRootListController
 
 - (NSArray *)specifiers {
@@ -18,6 +19,17 @@
                                               edit:Nil];
         [spec setProperty:@"" forKey:@"label"];
         [_specifiers addObject:spec];
+        
+        spec = [PSSpecifier preferenceSpecifierNamed:@"Licenses"
+                                              target:self
+                                                 set:NULL
+                                                 get:NULL
+                                              detail:Nil
+                                                cell:PSLinkCell
+                                                edit:Nil];
+        spec->action = @selector(showLicenses);
+        [_specifiers addObject:spec];
+
         spec = [PSSpecifier preferenceSpecifierNamed:FPSNSLocalizedString(@"ABOUT_AUTHOR")
                                               target:self
                                                  set:NULL
@@ -59,5 +71,10 @@
   UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
   self.navigationItem.backBarButtonItem = backItem; 
   [self.navigationController pushViewController:[[BDAppListController alloc] initWithDefaults:@"com.brend0n.unity60fpspref" andKey:@"apps"] animated:TRUE];
+}
+-(void)showLicenses{
+  UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
+  self.navigationItem.backBarButtonItem = backItem; 
+  [self.navigationController pushViewController:[[FPSLicenseViewController alloc] init] animated:TRUE];
 }
 @end

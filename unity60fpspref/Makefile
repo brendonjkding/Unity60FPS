@@ -1,7 +1,7 @@
 ARCHS = arm64 arm64e
 BUNDLE_NAME = unity60fpspref
 
-unity60fpspref_FILES = Unity60FPSRootListController.m BDInfoListController.m BDAppListController.m LowiOSVersionCompatibility.x
+unity60fpspref_FILES = Unity60FPSRootListController.m BDInfoListController.m BDAppListController.m LowiOSVersionCompatibility.x FPSLicenseViewController.m
 unity60fpspref_INSTALL_PATH = /Library/PreferenceBundles
 unity60fpspref_FRAMEWORKS = UIKit
 unity60fpspref_PRIVATE_FRAMEWORKS = Preferences

@@ -4,6 +4,7 @@
 #import <mach-o/dyld.h>
 #import <mach/mach.h>
 #import <hookzz.h>
+#import <sys/stat.h>
 
 kern_return_t mach_vm_region
 (
@@ -177,6 +178,19 @@ static void loadFrameWork(){
 	}
 	NSLog(@"aslr: 0x%lx",(long)aslr);
 }
+BOOL isLibhooker(){
+	//credits to https://github.com/XsF1re/XFJailbreakDetection/blob/master/XFJailbreakDetection/XFJailbreakDetection/XFJailbreakFileCheck.m#L68
+	int64_t flag = ENOENT;
+	static const char*libhookerPath="/usr/lib/libhooker.dylib";
+	__asm __volatile("mov x0, %0" :: "r" (libhookerPath)); //path
+	__asm __volatile("mov x1, #0"); //mode
+	__asm __volatile("mov x16, #0x21");   //access
+	__asm __volatile("svc #0x80"); //supervisor call
+	__asm __volatile("mov %0, x0" : "=r" (flag));
+
+	NSLog(@"isLibhooker: %d",(flag != ENOENT));
+	return (flag != ENOENT );
+}
 static void startHooking(){
     long ad_ref=find_ad_ref();
 
@@ -189,7 +203,7 @@ static void startHooking(){
 		NSLog(@"ad_set_targetFrameRate_b_b: 0x%lx",ad_set_targetFrameRate_b_b-aslr);
 
 		NSLog(@"hook setTargetFrameRate2 start");
-		if(!(access("/usr/lib/libhooker.dylib",F_OK)==0)){
+		if(!isLibhooker()){
 			MSHookFunction((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2);
 		}
 		else{
@@ -201,7 +215,7 @@ static void startHooking(){
 	}
 	else{
 		NSLog(@"hook setTargetFrameRate start");
-		if(!(access("/usr/lib/libhooker.dylib",F_OK)==0)){
+		if(!isLibhooker()){
 			MSHookFunction((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate);
 		}
 		else{

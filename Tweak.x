@@ -4,7 +4,6 @@
 #import <mach-o/dyld.h>
 #import <mach/mach.h>
 #import <hookzz.h>
-#import <sys/stat.h>
 
 kern_return_t mach_vm_region
 (
@@ -22,19 +21,11 @@ static int customFps;
 static BOOL setFPSOnFirstTouch;
 
 static long aslr;
-static long ad_fps;
 
 static long (*orig_setTargetFrameRate)(int fps);
 static long my_setTargetFrameRate(int fps){
 	NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
 	long ret=orig_setTargetFrameRate(enabled?customFps:fps);
-	return ret;
-}
-static long (*orig_setTargetFrameRate2)(int fps);
-static long my_setTargetFrameRate2(int fps){
-	NSLog(@"orig_setTargetFrameRate2 called, orig_rate: %d",fps);
-	if(enabled) *(int*)ad_fps=customFps;
-	long ret=orig_setTargetFrameRate2(enabled?customFps:fps);
 	return ret;
 }
 
@@ -68,13 +59,13 @@ static inline uint64_t get_adrp_address(uint32_t ins,long pc){
 	if(is_adrp) return get_page_address_64(pc, PAGE_SIZE) + (int64_t)value;
 	else return pc + (int64_t)value;
 }
-static inline uint64_t get_b_address(uint32_t ins,long pc){
-	int32_t imm26=ins&(0x3ffffff);
-	if((ins>>25)&0b1) imm26|=0xfc000000;
-	else imm26&=~0xfc000000;
-	imm26<<=2;
-	return pc+(int64_t)imm26;
-}
+// static inline uint64_t get_b_address(uint32_t ins,long pc){
+// 	int32_t imm26=ins&(0x3ffffff);
+// 	if((ins>>25)&0b1) imm26|=0xfc000000;
+// 	else imm26&=~0xfc000000;
+// 	imm26<<=2;
+// 	return pc+(int64_t)imm26;
+// }
 static inline uint64_t get_add_value(uint32_t ins){
 	uint32_t instr2=ins;
 
@@ -91,9 +82,9 @@ static inline uint64_t get_add_value(uint32_t ins){
     }
     return imm12;
 }
-static inline uint64_t get_str_imm12(uint32_t ins){
-	return 4*((ins&0x3ffc00)>>10);
-}
+// static inline uint64_t get_str_imm12(uint32_t ins){
+// 	return 4*((ins&0x3ffc00)>>10);
+// }
 // helper function
 
 static kern_return_t get_region_address_and_size(mach_vm_offset_t *address_p, mach_vm_size_t *size_p){
@@ -109,20 +100,14 @@ static kern_return_t get_region_address_and_size(mach_vm_offset_t *address_p, ma
 	return ret;
 }
 
-static long find_ad_set_targetFrameRate_b(long ad_ref){
+static long find_ad_set_targetFrameRate(long ad_ref){
 	ad_ref+=8;
 	NSLog(@"ad_ref: 0x%lx",ad_ref-aslr);
 
 	uint32_t ins=*(int*)ad_ref;
 	long ad_set_targetFrameRate=get_adrp_address(ins,ad_ref);
 	NSLog(@"ad_set_targetFrameRate: 0x%lx",ad_set_targetFrameRate-aslr);
-
-
-	ins=*(int*)ad_set_targetFrameRate;
-	long ad_set_targetFrameRate_b=get_b_address(ins,ad_set_targetFrameRate);
-	NSLog(@"ad_set_targetFrameRate_b: 0x%lx",ad_set_targetFrameRate_b-aslr);
-
-	return ad_set_targetFrameRate_b;
+	return ad_set_targetFrameRate;
 }
 
 static long find_ref_to_str(long ad_str){
@@ -178,52 +163,16 @@ static void loadFrameWork(){
 	}
 	NSLog(@"aslr: 0x%lx",(long)aslr);
 }
-BOOL isLibhooker(){
-	//credits to https://github.com/XsF1re/XFJailbreakDetection/blob/master/XFJailbreakDetection/XFJailbreakDetection/XFJailbreakFileCheck.m#L68
-	int64_t flag = ENOENT;
-	static const char*libhookerPath="/usr/lib/libhooker.dylib";
-	__asm __volatile("mov x0, %0" :: "r" (libhookerPath)); //path
-	__asm __volatile("mov x1, #0"); //mode
-	__asm __volatile("mov x16, #0x21");   //access
-	__asm __volatile("svc #0x80"); //supervisor call
-	__asm __volatile("mov %0, x0" : "=r" (flag));
 
-	NSLog(@"isLibhooker: %d",(flag != ENOENT));
-	return (flag != ENOENT );
-}
 static void startHooking(){
     long ad_ref=find_ad_ref();
 
-    long ad_set_targetFrameRate_b=find_ad_set_targetFrameRate_b(ad_ref);
-    if(is_adrp(*(uint32_t*)ad_set_targetFrameRate_b)){// too short to hook
-    	ad_fps=get_adrp_address(*(uint32_t*)ad_set_targetFrameRate_b,ad_set_targetFrameRate_b)+get_str_imm12(*(uint32_t*)(ad_set_targetFrameRate_b+0x4));
-		NSLog(@"ad_fps: 0x%lx",ad_fps-aslr);
+    long ad_set_targetFrameRate=find_ad_set_targetFrameRate(ad_ref);
 
-		long ad_set_targetFrameRate_b_b=get_b_address(*(uint32_t*)(ad_set_targetFrameRate_b+0x8),ad_set_targetFrameRate_b+0x8);
-		NSLog(@"ad_set_targetFrameRate_b_b: 0x%lx",ad_set_targetFrameRate_b_b-aslr);
-
-		NSLog(@"hook setTargetFrameRate2 start");
-		if(!isLibhooker()){
-			MSHookFunction((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2);
-		}
-		else{
-			ZzBuildHook((void *)ad_set_targetFrameRate_b_b, (void *)my_setTargetFrameRate2, (void **)&orig_setTargetFrameRate2, NULL, NULL);
-			ZzEnableHook((void *)ad_set_targetFrameRate_b_b);
-		}
-		NSLog(@"hook setTargetFrameRate2 success");
-		return;
-	}
-	else{
-		NSLog(@"hook setTargetFrameRate start");
-		if(!isLibhooker()){
-			MSHookFunction((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate);
-		}
-		else{
-			ZzBuildHook((void *)ad_set_targetFrameRate_b, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate, NULL, NULL);
-			ZzEnableHook((void *)ad_set_targetFrameRate_b);
-		}
-		NSLog(@"hook setTargetFrameRate success");
-	}
+    NSLog(@"hook setTargetFrameRate start");
+    ZzBuildHook((void *)ad_set_targetFrameRate, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate, NULL, NULL);
+    ZzEnableHook((void *)ad_set_targetFrameRate);
+    NSLog(@"hook setTargetFrameRate success");
 }
 
 static void loadPref(){
@@ -234,11 +183,6 @@ static void loadPref(){
 	NSLog(@"customFps: %d",customFps);
 
 	if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
-	if(orig_setTargetFrameRate2) {
-		*(int*)ad_fps=customFps;
-		orig_setTargetFrameRate2(customFps);
-		
-	}
 }
 static BOOL isEnabledApp(){
 	NSString* bundleIdentifier=[[NSBundle mainBundle] bundleIdentifier];
@@ -255,11 +199,6 @@ static BOOL isEnabledApp(){
 	static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
-		if(orig_setTargetFrameRate2) {
-			*(int*)ad_fps=customFps;
-			orig_setTargetFrameRate2(customFps);
-			
-		}
     });
 }
 %end

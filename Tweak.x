@@ -114,7 +114,7 @@ static long find_ref_to_str(long ad_str){
 	mach_vm_offset_t address=0;
 	mach_vm_size_t size=0;
 	while(get_region_address_and_size(&address,&size)==KERN_SUCCESS){
-		NSLog(@"0x%lx 0x%lx",(long)address,(long)address+(long)size);
+		// NSLog(@"0x%lx 0x%lx",(long)(address-aslr),((long)address+(long)size-aslr));
 		for(long ad=address;ad+4<address+size;ad+=4){
 			int32_t ins=*(int32_t*)ad;
 			int32_t ins2=*(int32_t*)(ad+4);
@@ -132,12 +132,12 @@ static long find_ad_ref(){
 	mach_vm_offset_t address=0;
 	mach_vm_size_t size=0;
 	while(get_region_address_and_size(&address,&size)==KERN_SUCCESS){
-		// NSLog(@"0x%lx 0x%lx",(long)address,(long)address+(long)size);
+		// NSLog(@"0x%lx 0x%lx",(long)(address-aslr),((long)address+(long)size-aslr));
 		for(long ad=address;ad<address+size;ad++){
 			static const char *t="UnityEngine.Application::set_targetFrameRate";
 			if(!strcmp((const char*)(ad),t)) {
 				static int count=0;
-				NSLog(@"ad_str candidate %d: 0x%lx",++count,ad);
+				NSLog(@"ad_str candidate %d: 0x%lx",++count,ad-aslr);
 				long ad_ref=find_ref_to_str(ad);
 				if(ad_ref) return ad_ref;
 			}

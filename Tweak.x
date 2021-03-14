@@ -205,7 +205,7 @@ static BOOL isEnabledApp(){
 	if(!enabled) return NO;
 	return [prefs[@"apps"] containsObject:bundleIdentifier];
 }
-
+%group hook
 %hook UnityView
 -(void)touchesBegan:(id)touches withEvent:(id)event{
 	%orig;
@@ -216,10 +216,13 @@ static BOOL isEnabledApp(){
     });
 }
 %end
+%end
+
 #pragma mark ctor
 %ctor {
 	if(!isEnabledApp()) return;
 
+	%init(hook);
 	loadPref();
 
 	loadFrameWork();

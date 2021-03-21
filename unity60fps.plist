@@ -2,7 +2,6 @@
 	Filter = {
 		Bundles = (
 			"com.apple.UIKit",
-            "com.apple.Foundation"
 		);
 	};
 }

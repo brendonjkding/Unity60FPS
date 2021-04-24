@@ -210,10 +210,10 @@ static BOOL isEnabledApp(){
 -(void)touchesBegan:(id)touches withEvent:(id)event{
 	%orig;
 	if(!enabled||!setFPSOnFirstTouch) return;
-	static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+	// static dispatch_once_t onceToken;
+    // dispatch_once(&onceToken, ^{
         if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
-    });
+    // });
 }
 %end
 %end

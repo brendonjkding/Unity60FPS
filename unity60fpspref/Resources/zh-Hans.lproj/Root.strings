@@ -19,4 +19,4 @@
 ";
 
 "CUSTOM_FPS"="自定义帧数";
-"SET_FPS_ON_FIRST_TOUCH"="第一次点击时设置FPS";
+"SET_FPS_ON_FIRST_TOUCH"="点击时设置FPS";

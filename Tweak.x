@@ -3,7 +3,7 @@
 #import <string.h>
 #import <mach-o/dyld.h>
 #import <mach/mach.h>
-#import <hookzz.h>
+#import "hook_override.h"
 
 kern_return_t mach_vm_region
 (
@@ -31,12 +31,15 @@ static BOOL setFPSOnFirstTouch;
 
 static long aslr;
 
-static long (*orig_setTargetFrameRate)(int fps);
-static long my_setTargetFrameRate(int fps){
+typedef long (*orig_t)(int);
+
+%group unity
+%hookf(long, setTargetFrameRate, int fps){
 	NSLog(@"orig_setTargetFrameRate called, orig_rate: %d",fps);
-	long ret=orig_setTargetFrameRate(enabled?customFps:fps);
+	long ret=%orig(enabled?customFps:fps);
 	return ret;
 }
+%end//unity
 
 #pragma mark helper function
 // thanks to https://reverseengineering.stackexchange.com/questions/15418/getting-function-address-by-reading-adrp-and-add-instruction-values
@@ -184,8 +187,7 @@ static void startHooking(){
     long ad_set_targetFrameRate=find_ad_set_targetFrameRate(ad_ref);
 
     NSLog(@"hook setTargetFrameRate start");
-    ZzBuildHook((void *)ad_set_targetFrameRate, (void *)my_setTargetFrameRate, (void **)&orig_setTargetFrameRate, NULL, NULL);
-    ZzEnableHook((void *)ad_set_targetFrameRate);
+    %init(unity,setTargetFrameRate=(void*)ad_set_targetFrameRate);
     NSLog(@"hook setTargetFrameRate success");
 }
 
@@ -196,7 +198,9 @@ static void loadPref(){
 	setFPSOnFirstTouch=prefs[@"setFPSOnFirstTouch"]?[prefs[@"setFPSOnFirstTouch"] boolValue]:YES;
 	NSLog(@"customFps: %d",customFps);
 
-	if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
+	if(_logos_orig$unity$setTargetFrameRate) {
+        (void)(orig_t)*(void**)_logos_orig$unity$setTargetFrameRate(customFps);
+    }
 }
 static BOOL isEnabledApp(){
 	NSString* bundleIdentifier=[[NSBundle mainBundle] bundleIdentifier];
@@ -212,7 +216,9 @@ static BOOL isEnabledApp(){
 	if(!enabled||!setFPSOnFirstTouch) return;
 	static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if(orig_setTargetFrameRate) orig_setTargetFrameRate(customFps);
+        if(_logos_orig$unity$setTargetFrameRate) {
+            (void)(orig_t)*(void**)_logos_orig$unity$setTargetFrameRate(customFps);
+        }
     });
 }
 %end

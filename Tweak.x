@@ -199,7 +199,7 @@ static void loadPref(){
     NSLog(@"customFps: %d",customFps);
 
     if(_logos_orig$unity$setTargetFrameRate) {
-        (void)(orig_t)*(void**)_logos_orig$unity$setTargetFrameRate(customFps);
+        (void)(orig_t)_logos_orig$unity$setTargetFrameRate(customFps);
     }
 }
 static BOOL isEnabledApp(){
@@ -217,7 +217,7 @@ static BOOL isEnabledApp(){
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         if(_logos_orig$unity$setTargetFrameRate) {
-            (void)(orig_t)*(void**)_logos_orig$unity$setTargetFrameRate(customFps);
+            (void)(orig_t)_logos_orig$unity$setTargetFrameRate(customFps);
         }
     });
 }

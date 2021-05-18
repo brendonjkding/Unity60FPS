@@ -212,33 +212,26 @@ static BOOL isEnabledApp(){
     if(!enabled) return NO;
     return [prefs[@"apps"] containsObject:bundleIdentifier];
 }
-%group hook
-%hook UnityView
--(void)touchesBegan:(id)touches withEvent:(id)event{
-    %orig;
-    if(!enabled||!setFPSOnFirstTouch) return;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        if(_logos_orig$unity$setTargetFrameRate) {
-            (void)(orig_t)_logos_orig$unity$setTargetFrameRate(customFps);
-        }
-    });
+
+static void UIApplicationDidFinishLaunching(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo){
+    startHooking();
+    if(_logos_orig$unity$setTargetFrameRate) {
+        (void)(orig_t)_logos_orig$unity$setTargetFrameRate(customFps);
+    }
 }
-%end
-%end
 
 #pragma mark ctor
 %ctor {
     if(!isEnabledApp()) return;
 
-    %init(hook);
     loadPref();
 
     loadFrameWork();
-    startHooking();
 
     int token = 0;
     notify_register_dispatch("com.brend0n.unity60fpspref/loadPref", &token, dispatch_get_main_queue(), ^(int token) {
         loadPref();
     });
+
+    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), NULL, UIApplicationDidFinishLaunching, (CFStringRef)UIApplicationDidFinishLaunchingNotification, NULL, CFNotificationSuspensionBehaviorCoalesce);
 }

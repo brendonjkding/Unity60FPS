@@ -1,6 +1,7 @@
 TARGET = iphone:clang:11.2:7.0
 ARCHS = arm64
 
+INSTALL_TARGET_PROCESSES = fatego
 
 TWEAK_NAME = unity60fps
 

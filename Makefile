@@ -7,7 +7,7 @@ TWEAK_NAME = unity60fps
 
 unity60fps_FILES = Tweak.x
 unity60fps_CFLAGS = -fobjc-arc
-unity60fps_LIBRARIES = hookzz.static
+unity60fps_LIBRARIES = dobby
 
 ADDITIONAL_CFLAGS += -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=unused-value -include Prefix.pch
 

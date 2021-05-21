@@ -1,9 +1,8 @@
-#import <hookzz.h>
+#import <dobby.h>
 #import <substrate.h>
-#if !(__has_feature(ptrauth_calls))
 #define MSHookFunction(_func, _new, _orig) \
     do {\
-        ZzBuildHook(_func, _new, _orig, NULL, NULL);\
-        ZzEnableHook(_func);\
+        dobby_enable_near_branch_trampoline();\
+        DobbyHook(_func, _new, _orig);\
+        dobby_disable_near_branch_trampoline();\
     } while (0)
-#endif

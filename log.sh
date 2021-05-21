@@ -1,1 +1,1 @@
-idevicesyslog | grep -E '\(unity60' --color
+idevicesyslog | grep -Ei 'unity60fps' --color

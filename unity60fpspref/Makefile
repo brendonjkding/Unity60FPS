@@ -5,8 +5,10 @@ unity60fpspref_FILES = Unity60FPSRootListController.m BDInfoListController.m BDA
 unity60fpspref_INSTALL_PATH = /Library/PreferenceBundles
 unity60fpspref_FRAMEWORKS = UIKit
 unity60fpspref_PRIVATE_FRAMEWORKS = Preferences
-unity60fpspref_CFLAGS = -fobjc-arc -include Prefix.pch
+unity60fpspref_CFLAGS = -fobjc-arc
 unity60fpspref_LIBRARIES = applist
+
+ADDITIONAL_CFLAGS += -Wno-error=unused-variable -Wno-error=unused-function -Wno-error=unused-value -include Prefix.pch
 
 include $(THEOS)/makefiles/common.mk
 include $(THEOS_MAKE_PATH)/bundle.mk

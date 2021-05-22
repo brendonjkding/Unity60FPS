@@ -223,6 +223,14 @@ static long find_ad_set_targetFrameRate_from_ref(long ad_ref){
     uint32_t ins=*(int*)ad_ref;
     long ad_set_targetFrameRate=get_adrp_address(ins,ad_ref);
     NSLog(@"ad_set_targetFrameRate: 0x%lx",ad_set_targetFrameRate-aslr);
+
+    ins=*(int*)ad_set_targetFrameRate;
+    if(is_b(ins)){
+        NSLog(@"trying hook low-level function");
+        ad_set_targetFrameRate=get_b_address(ins,ad_set_targetFrameRate);
+        NSLog(@"ad_set_targetFrameRate: 0x%lx",ad_set_targetFrameRate-aslr);
+    }
+
     return ad_set_targetFrameRate;
 }
 

@@ -1,5 +1,4 @@
 #include "Unity60FPSRootListController.h"
-#import "BDAppListController.h"
 #import "BDInfoListController.h"
 #import "FPSLicenseViewController.h"
 @implementation Unity60FPSRootListController
@@ -66,11 +65,6 @@
   UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
   self.navigationItem.backBarButtonItem = backItem; 
   [self.navigationController pushViewController:[[BDInfoListController alloc] init] animated:TRUE];
-}
--(void)selectApp{
-  UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
-  self.navigationItem.backBarButtonItem = backItem; 
-  [self.navigationController pushViewController:[[BDAppListController alloc] initWithDefaults:@"com.brend0n.unity60fpspref" andKey:@"apps"] animated:TRUE];
 }
 -(void)showLicenses{
   UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];

@@ -348,7 +348,7 @@ static void copyBundleIds(){
     NSMutableArray *apps=[NSMutableArray new];
     root[@"Filter"]=filter;
     filter[@"Bundles"]=apps;
-    [apps addObject:@"com.apple.springboard"];
+    [apps addObject:@"com.apple.UIKit"];
     NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
     if(prefs[@"apps"]){
         [apps addObjectsFromArray:prefs[@"apps"]];

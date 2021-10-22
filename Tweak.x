@@ -33,6 +33,7 @@ static BOOL setFPSOnFirstTouch;
 static long aslr;
 
 typedef long (*orig_t)(int);
+#define orig_setTargetFrameRate _logos_orig$unity$setTargetFrameRate
 
 %group unity
 %hookf(long, setTargetFrameRate, int fps){
@@ -322,8 +323,8 @@ static void loadPref(){
     setFPSOnFirstTouch=prefs[@"setFPSOnFirstTouch"]?[prefs[@"setFPSOnFirstTouch"] boolValue]:YES;
     NSLog(@"customFps: %d",customFps);
 
-    if(_logos_orig$unity$setTargetFrameRate) {
-        (void)(orig_t)_logos_orig$unity$setTargetFrameRate(customFps);
+    if(orig_setTargetFrameRate) {
+        (void)(orig_t)orig_setTargetFrameRate(customFps);
     }
 }
 static BOOL isEnabledApp(){
@@ -337,8 +338,8 @@ static BOOL isEnabledApp(){
 static void UIApplicationDidFinishLaunching(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo){
     loadFrameWork();
     buildHook();
-    if(_logos_orig$unity$setTargetFrameRate) {
-        (void)(orig_t)_logos_orig$unity$setTargetFrameRate(customFps);
+    if(orig_setTargetFrameRate) {
+        (void)(orig_t)orig_setTargetFrameRate(customFps);
     }
 }
 

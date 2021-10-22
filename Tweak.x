@@ -336,6 +336,7 @@ static BOOL isEnabledApp(){
 }
 
 static void UIApplicationDidFinishLaunching(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo){
+    loadFrameWork();
     buildHook();
     if(_logos_orig$unity$setTargetFrameRate) {
         (void)(orig_t)_logos_orig$unity$setTargetFrameRate(customFps);
@@ -370,8 +371,6 @@ static void copyBundleIds(){
     NSLog(@"ctor: Unity60FPS");
 
     loadPref();
-
-    loadFrameWork();
 
     int token = 0;
     notify_register_dispatch("com.brend0n.unity60fpspref/loadPref", &token, dispatch_get_main_queue(), ^(int token) {

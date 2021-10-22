@@ -3,14 +3,9 @@ Name: Unity60FPS
 Depends: mobilesubstrate, preferenceloader, com.opa334.altlist
 Version: 0.1.3~b1
 Architecture: iphoneos-arm
-Description: Force Unity Games render at custom framerate(60/30).
- 0.1.2~b1: Improved App compatibility
- 0.1.1b3: no longer inject into unnecessary processes introduced in 0.1.1b1
- 0.1.1b2: fix sudo crash
- 0.1.1b1: fix crash in some games
- 0.1.0: support libhooker(Chimera, Odyssey)
- 0.0.9r3: fix low iOS version compatibility
- 0.0.9r2: this is actually r1
+Description: Force Unity Games/Apps render at custom framerate(60/30)
 Maintainer: Brend0n <brendonjkding@126.com>
 Author: Brend0n <brendonjkding@126.com>
 Section: Tweaks
+Depiction: http://brendonjkding.github.io/depictions/web/?p=com.brend0n.fgotw60fps
+SileoDepiction: http://brendonjkding.github.io/depictions/web/com.brend0n.fgotw60fps/depiction.json

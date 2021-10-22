@@ -10,7 +10,4 @@
 #define NSLog(FORMAT, ...)
 #endif
 
-#import <UIKit/UIKit.h>
-extern UIApplication* UIApp;
-
 #endif //__OBJC__

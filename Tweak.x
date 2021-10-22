@@ -4,7 +4,6 @@
 #import <mach-o/dyld.h>
 #import <mach-o/loader.h>
 #import <mach/mach.h>
-#import <theos/IOSMacros.h>
 #import "hook_override.h"
 
 extern kern_return_t mach_vm_region
@@ -343,30 +342,8 @@ static void UIApplicationDidFinishLaunching(CFNotificationCenterRef center, void
     }
 }
 
-static void copyBundleIds(){
-    NSMutableDictionary *root=[NSMutableDictionary new];
-    NSMutableDictionary *filter=[NSMutableDictionary new];
-    NSMutableArray *apps=[NSMutableArray new];
-    root[@"Filter"]=filter;
-    filter[@"Bundles"]=apps;
-    [apps addObject:@"com.apple.UIKit"];
-    NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
-    if(prefs[@"apps"]){
-        [apps addObjectsFromArray:prefs[@"apps"]];
-    }
-    [root writeToFile:@"/var/mobile/Library/Preferences/unity60fps.plist" atomically:YES];
-}
-
 #pragma mark ctor
 %ctor {
-    if(IN_SPRINGBOARD){
-        copyBundleIds();
-        int token = 0;
-        notify_register_dispatch("com.brend0n.unity60fpspref/loadPref", &token, dispatch_get_main_queue(), ^(int token) {
-            copyBundleIds();
-        });
-        return;
-    }
     if(!isEnabledApp()) return;
     NSLog(@"ctor: Unity60FPS");
 

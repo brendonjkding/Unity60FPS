@@ -300,7 +300,15 @@ static void buildHook(){
 }
 
 static void loadFrameWork(){
-    aslr=_dyld_get_image_vmaddr_slide(0);
+    const char *executablePath = NSBundle.mainBundle.executablePath.UTF8String;
+    for(int i=0;i<_dyld_image_count();i++){
+        const char *image_name=_dyld_get_image_name(i);
+        if(!strcmp(image_name, executablePath)){
+            aslr=_dyld_get_image_vmaddr_slide(i);
+            break;
+        }
+    }
+
     NSString*bundlePath=[NSString stringWithFormat:@"%@/Frameworks/UnityFramework.framework",[[NSBundle mainBundle] bundlePath]];
     NSBundle *bundle=[NSBundle bundleWithPath:bundlePath];
     [bundle load];

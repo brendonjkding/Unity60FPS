@@ -100,10 +100,10 @@ static inline uint64_t get_add_value(uint32_t ins){
     return imm12;
 }
 static inline uint64_t get_ldr_imm12(uint32_t ins){
-    return 4*((ins&0x3ffc00)>>10);
+    return ((ins&0x3ffc00)>>10)<<((ins>>30)&0b11);
 }
 static inline uint64_t get_str_imm12(uint32_t ins){
-    return 4*((ins&0x3ffc00)>>10);
+    return ((ins&0x3ffc00)>>10)<<((ins>>30)&0b11);
 }
 static inline bool is_32_imm_str(uint32_t ins){
     return (ins&0xFFC00000)==0xB9000000;

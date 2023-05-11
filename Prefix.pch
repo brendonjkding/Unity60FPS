@@ -1,7 +1,7 @@
 #ifdef __OBJC__
 
-#define kPrefPath @"/var/mobile/Library/Preferences/com.brend0n.unity60fpspref.plist"
-#define kBundlePath @"/Library/PreferenceBundles/unity60fpspref.bundle"
+#define kPrefPath @THEOS_PACKAGE_INSTALL_PREFIX"/var/mobile/Library/Preferences/com.brend0n.unity60fpspref.plist"
+#define kBundlePath @THEOS_PACKAGE_INSTALL_PREFIX"/Library/PreferenceBundles/unity60fpspref.bundle"
 
 #define FPSNSLocalizedString(key) NSLocalizedStringFromTableInBundle((key),@"Root",[NSBundle bundleWithPath:kBundlePath],nil)
 

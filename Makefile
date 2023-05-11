@@ -1,5 +1,9 @@
 TARGET = iphone:clang:latest:7.0
-ARCHS = arm64
+ifeq ($(THEOS_PACKAGE_SCHEME), rootless)
+	ARCHS = arm64 arm64e
+else
+	ARCHS = arm64
+endif
 
 INSTALL_TARGET_PROCESSES = fatego
 
